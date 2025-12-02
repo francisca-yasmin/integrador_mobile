@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Criar usuário global
-    Future<String?> createUserAccount({
+
+// ======================================================
+// FUNÇÃO PARA CRIAR USUÁRIO
+// ======================================================
+Future<String?> createUserAccount({
   required String name,
   required String email,
   required String senha,
@@ -34,6 +36,44 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 }
 
 
+// ======================================================
+// FUNÇÃO PARA LOGIN
+// ======================================================
+Future<Map<String, dynamic>?> loginUser({
+  required String email,
+  required String senha,
+}) async {
+  try {
+    final query = await FirebaseFirestore.instance
+        .collection("usuario")
+        .where("email", isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (query.docs.isEmpty) {
+      return {"error": "Usuário não encontrado."};
+    }
+
+    final doc = query.docs.first;
+
+    if (doc["senha"] != senha) {
+      return {"error": "Senha incorreta."};
+    }
+
+    return {
+      "userId": doc.id,
+      "name": doc["name"],
+      "email": doc["email"],
+    };
+  } catch (e) {
+    return {"error": "Erro ao fazer login: $e"};
+  }
+}
+
+
+// ======================================================
+// PAGINA DE CADASTRO
+// ======================================================
 class PageCadastro extends StatefulWidget {
   const PageCadastro({super.key});
 

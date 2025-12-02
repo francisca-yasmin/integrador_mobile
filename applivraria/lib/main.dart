@@ -2,6 +2,7 @@ import 'package:applivraria/bem_vindo.dart';
 import 'package:applivraria/cadastro.dart';
 import 'package:applivraria/home.dart';
 import 'package:applivraria/login.dart';
+import 'package:applivraria/perfil.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
         '/cadastro': (context) => PageCadastro(),
-        
+        '/perfil': (context) => ProfileScreen(),
  
       },
     );

@@ -1,6 +1,34 @@
 import 'package:applivraria/home.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// Função de login com Firestore
+Future<String?> loginUser({
+  required String email,
+  required String senha,
+}) async {
+  try {
+    final query = await FirebaseFirestore.instance
+        .collection("usuario")
+        .where("email", isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (query.docs.isEmpty) {
+      return "Usuário não encontrado.";
+    }
+
+    final userData = query.docs.first.data();
+
+    if (userData["senha"] != senha) {
+      return "Senha incorreta.";
+    }
+
+    return null; // sucesso
+  } catch (e) {
+    return "Erro ao fazer login: $e";
+  }
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,35 +59,22 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => loading = true);
 
-    try {
-    
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // LOGIN VIA FIRESTORE
+    String? error = await loginUser(email: email, senha: password);
 
-      // se o login tiver OK → vai para HOME
+    if (error == null) {
+      // Login OK → vai para home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
-    } on FirebaseAuthException catch (e) {
-      String error = "Erro ao fazer login";
-
-      if (e.code == "user-not-found") {
-        error = "Usuário não encontrado.";
-      } else if (e.code == "wrong-password") {
-        error = "Senha incorreta.";
-      } else if (e.code == "invalid-email") {
-        error = "E-mail inválido.";
-      }
-
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),
       );
-    } finally {
-      setState(() => loading = false);
     }
+
+    setState(() => loading = false);
   }
 
   @override
@@ -81,7 +96,6 @@ class _LoginPageState extends State<LoginPage> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            
             Container(
               width: 320,
               padding: const EdgeInsets.fromLTRB(24, 120, 24, 24),
