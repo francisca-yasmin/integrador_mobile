@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Função de login com Firestore
-Future<String?> loginUser({
+Future<dynamic> loginUser({
   required String email,
   required String senha,
 }) async {
@@ -18,13 +18,20 @@ Future<String?> loginUser({
       return "Usuário não encontrado.";
     }
 
-    final userData = query.docs.first.data();
+    final doc = query.docs.first;
+    final userData = doc.data();
 
     if (userData["senha"] != senha) {
       return "Senha incorreta.";
     }
 
-    return null; // sucesso
+    // Retorna os dados do usuário
+    return {
+      "docId": doc.id,
+      "name": userData["name"],
+      "email": userData["email"],
+    };
+
   } catch (e) {
     return "Erro ao fazer login: $e";
   }
