@@ -2,89 +2,114 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PerfilPage extends StatelessWidget {
-  final String name;
-  final String email;
-  final String docId; // << ID do documento do usuário
+  final String docId; // ID do usuário no Firestore
 
-  PerfilPage({
-    required this.name,
-    required this.email,
-    required this.docId,
-  });
-
-  /// Função para excluir o usuário do Firestore
-  Future<void> _deleteAccount(BuildContext context) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection("usuario")
-          .doc(docId)
-          .delete();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Conta excluída com sucesso!")),
-      );
-
-      Navigator.pop(context); // volta para a tela anterior
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao excluir conta: $e")),
-      );
-    }
-  }
+  PerfilPage({required this.docId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF4A47A3),
-      body: Center(
-        child: Container(
-          width: 320,
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A47A3),
-                ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection("usuario")
+            .doc(docId)
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(
+              child: Text("Usuário não encontrado",
+                  style: TextStyle(fontSize: 18)),
+            );
+          }
+
+          var user = snapshot.data!.data() as Map<String, dynamic>;
+          String name = user["name"] ?? "Usuário";
+          String email = user["email"] ?? "email@dominio.com";
+
+          return Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFF47CB9),Color(0xFFB86FD8), ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-
-              SizedBox(height: 8),
-
-              Text(
-                email,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-
-              SizedBox(height: 32),
-
-              ElevatedButton(
-                onPressed: () => _deleteAccount(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF4A47A3),
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(36),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // FOTO DO PERFIL (GENÉRICA)
+                CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.white.withOpacity(0.3),
+                  child: Icon(
+                    Icons.person,
+                    size: 70,
+                    color: Colors.white,
                   ),
                 ),
-                child: Text(
-                  'Excluir Conta',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                SizedBox(height: 20),
+
+                // NOME
+                Text(
+                  name,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+
+                SizedBox(height: 8),
+
+                // EMAIL
+                Text(
+                  email,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                  ),
+                ),
+
+                SizedBox(height: 40),
+
+                // CARTÃO BRANCO
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  padding: EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Informações da Conta",
+                        style: TextStyle(
+                          color: Color(0xFFf47cb9),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text("Nome: $name",
+                          style: TextStyle(fontSize: 16)),
+                      SizedBox(height: 6),
+                      Text("Email: $email",
+                          style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

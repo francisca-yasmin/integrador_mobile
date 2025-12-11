@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
         '/cadastro': (context) => PageCadastro(),
-        '/perfil': (context) => PerfilPage(name: data['name'], email: data['email']),
+        '/perfil': (context) => PerfilPage(docId: "",),
  
       },
     );
